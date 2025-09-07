@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tortoise-fastapi-crudrouter"
-version = "0.1.0"
+version = "0.0.0"
 description = "A dynamic FastAPI router that automatically creates CRUD routes for your models"
 authors = ["Dybfuo <mail@fincubes.ru>"]
 license = "MIT"
