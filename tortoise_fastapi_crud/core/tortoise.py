@@ -18,23 +18,14 @@ class TortoiseCRUDRouter(APIRouter):
         route_config: Optional[RouteConfig] = None,
         **kwargs: Any,
     ) -> None:
-        super().__init__(prefix=schema_config.prefix or "", tags=schema_config.tags or [], **kwargs)
+        super().__init__(prefix=schema_config.prefix or "",
+                         tags=schema_config.tags or [], **kwargs)
 
         self.schema_config = schema_config
         self.route_config = route_config or RouteConfig()
 
-        if self.schema_config.schema and (self.schema_config.create_schema or self.schema_config.update_schema):
-            raise ValueError(
-                "You cannot provide `schema` together with (`create_schema`, `update_schema`)."
-            )
-
-        if not self.schema_config.schema and not (self.schema_config.create_schema and self.schema_config.update_schema):
-            raise ValueError(
-                "You must provide either `schema` or both `create_schema` and `update_schema`."
-            )
-
         self.db_model = self.schema_config.db_model
-        self.schema = self.schema_config.schema
+        self.schema = self.schema_config.schema or self.schema_config.create_schema or self.schema_config.update_schema
         self.create_schema = self.schema_config.create_schema or self.schema
         self.update_schema = self.schema_config.update_schema or self.schema
         self.paginate = self.schema_config.paginate
@@ -44,8 +35,8 @@ class TortoiseCRUDRouter(APIRouter):
     def _get_all(self) -> CALLABLE_LIST:
         if self.paginate:
             async def route(
-                pagination: PAGINATION = Depends(pagination_factory(
-                    self.paginate if isinstance(self.paginate, int) else None)),
+                pagination: PAGINATION = pagination_factory(
+                    self.paginate if isinstance(self.paginate, int) else None),
             ) -> List[Model]:
                 skip, limit = pagination.get("skip"), pagination.get("limit")
                 query = self.db_model.all().offset(cast(int, skip))
@@ -68,14 +59,14 @@ class TortoiseCRUDRouter(APIRouter):
 
     def _create(self) -> CALLABLE:
         async def route(model: self.create_schema) -> Model:
-            db_model = self.db_model(**model.dict())
+            db_model = self.db_model(**model.model_dump())
             await db_model.save()
             return db_model
         return route
 
     def _update(self) -> CALLABLE:
         async def route(item_id: int, model: self.update_schema) -> Model:
-            await self.db_model.filter(id=item_id).update(**model.dict(exclude_unset=True))
+            await self.db_model.filter(id=item_id).update(**model.model_dump(exclude_unset=True))
             return await self.db_model.get(id=item_id)
         return route
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tortoise-fastapi-crudrouter"
-version = "0.1.0"  # либо укажи здесь руками, либо подтягивай из _version.py (Poetry напрямую dynamic не поддерживает)
+version = "0.1.0"
 description = "A dynamic FastAPI router that automatically creates CRUD routes for your models"
 authors = ["Dybfuo <mail@fincubes.ru>"]
 license = "MIT"
@@ -35,8 +35,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7"
-fastapi = "*"
+python = ">=3.11"
+fastapi = "^0.116.1"
+tortoise-orm = {extras = ["asyncpg"], version = "^0.25.1"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
